@@ -114,7 +114,7 @@ function DashboardContent() {
             value={user.role}
             onChange={(event) => switchRole(event.target.value)}
           >
-            <option value="mother">Anjali · Mother</option>
+            <option value="mother">Ayesha · Mother</option>
             <option value="husband">Partner view</option>
             <option value="doctor">Doctor view</option>
           </select>

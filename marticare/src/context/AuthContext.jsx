@@ -4,7 +4,7 @@ const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
     const [user, setUser] = useState({
-        name: 'Anjali Mane',
+        name: 'Ayesha Mane',
         role: 'mother', // Options: 'mother', 'husband', 'doctor'
         email: 'anjali@example.com'
     });
