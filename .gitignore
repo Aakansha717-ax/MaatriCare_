@@ -1,0 +1,5 @@
+marticare/node_modules/
+marticare/dist/
+marticare/.env
+marticare/.env.*
+!marticare/.env.example
