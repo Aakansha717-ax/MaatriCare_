@@ -23,7 +23,7 @@ async function request(path, options = {}) {
     try {
         const token = getToken();
 
-        const response = await fetch(`${API_BASE_URL}${path}`, {
+        const response = await fetch(`${API_URL}/api/auth/signup`, {
             ...options,
             headers: {
                 ...(options.body ? { 'Content-Type': 'application/json' } : {}),
@@ -38,7 +38,7 @@ async function request(path, options = {}) {
             return {
                 ok: false,
                 data,
-                message: data.message || `Request failed (${response.status})`,
+                message: data.message || `Request failed(${response.status})`,
             };
         }
 
