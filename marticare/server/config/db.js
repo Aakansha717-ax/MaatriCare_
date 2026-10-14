@@ -5,20 +5,22 @@ import dns from 'node:dns';
 
 dotenv.config();
 
-// Fix Node.js DNS resolution for MongoDB Atlas
+// Use Google DNS for MongoDB Atlas SRV lookups.
 dns.setServers(['8.8.8.8', '8.8.4.4']);
 
 const connectDB = async () => {
+  const uri = process.env.MONGODB_URI;
+
+  if (!uri) {
+    throw new Error('MONGODB_URI is missing from server/.env');
+  }
+
   try {
-    const uri = process.env.MONGODB_URI;
+    await mongoose.connect(uri, {
+      serverSelectionTimeoutMS: 15000,
+    });
 
-    if (!uri) {
-      throw new Error('MONGODB_URI is missing from the .env file');
-    }
-
-    const conn = await mongoose.connect(uri);
-
-    console.log(`MongoDB connected: ${conn.connection.host}`);
+    console.log(`MongoDB connected: ${mongoose.connection.host}`);
   } catch (err) {
     console.error('MongoDB connection error:', err.message);
     throw err;
