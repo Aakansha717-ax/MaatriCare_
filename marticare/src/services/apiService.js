@@ -152,3 +152,5 @@ export const apiService = {
         return request('/data/health-records');
     },
 };
+
+const API_URL = import.meta.env.VITE_API_URL || 'https://maatricare-api.onrender.com';
