@@ -1,4 +1,3 @@
-
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
@@ -17,21 +16,22 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Middleware
-
+// Middleware - Combined and clean allowed origins
 const allowedOrigins = [
+  process.env.CLIENT_URL,
   'http://localhost:5173',
   'http://localhost:5174',
   'https://maatri-care-mddg-fsesowgeg-escape-code.vercel.app',
-];
+  'https://maatri-care-mddg.vercel.app',
+  'https://maatri-care-mddg-git-main-escape-code.vercel.app',
+].filter(Boolean);
 
 app.use(cors({
-  origin: function (origin, callback) {
+  origin: (origin, callback) => {
     if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error(`Origin ${origin} not allowed by CORS`));
+      return callback(null, true);
     }
+    return callback(new Error(`Origin ${origin} not allowed by CORS`));
   },
   credentials: true,
 }));
@@ -74,7 +74,7 @@ app.use((req, res) => {
   });
 });
 
-// Error handler
+// Error handler middleware (Properly wrapped)
 app.use((err, req, res, next) => {
   if (res.headersSent) {
     return next(err);
