@@ -63,19 +63,33 @@ app.use((req, res) => {
 });
 
 // Error handler
-app.use((err, req, res, next) => {
-  console.error('API error:', err.stack || err.message);
 
-  if (res.headersSent) {
-    return next(err);
-  }
+const allowedOrigins = [
+  process.env.CLIENT_URL,
+  'https://maatri-care-mddg-fsesowgeg-escape-code.vercel.app',
+  'https://maatri-care-mddg-git-main-escape-code.vercel.app',
+  'http://localhost:5173'
+].filter(Boolean);
 
-  res.status(err.status || 500).json({
-    message:
-      err.status && err.status < 500
-        ? err.message
-        : 'Internal server error',
-  });
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    return callback(new Error('Origin not allowed by CORS'));
+  },
+  credentials: true
+}));
+
+if (res.headersSent) {
+  return next(err);
+}
+
+res.status(err.status || 500).json({
+  message:
+    err.status && err.status < 500
+      ? err.message
+      : 'Internal server error',
 });
 
 // Start only after MongoDB connects
