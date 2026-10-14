@@ -3,3 +3,8 @@ marticare/dist/
 marticare/.env
 marticare/.env.*
 !marticare/.env.example
+node_modules/
+dist/
+.env
+.env.*
+!.env.example

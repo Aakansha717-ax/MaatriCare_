@@ -817,7 +817,7 @@
   font-style: normal;
 }
 
-.baby-highlight > div:last-child {
+.baby-highlight>div:last-child {
   display: grid;
   gap: 4px;
 }
@@ -853,7 +853,7 @@
   gap: 9px;
 }
 
-.baby-stat > span:last-child {
+.baby-stat>span:last-child {
   display: grid;
   min-width: 0;
   gap: 3px;
@@ -1296,6 +1296,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+
   *,
   *::before,
   *::after {

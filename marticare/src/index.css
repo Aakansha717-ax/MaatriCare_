@@ -47,3 +47,399 @@ select:focus-visible {
   color: #59424d;
   background: #f4dce5;
 }
+
+/* App-wide interactive navigation shell */
+.mc-app-layout {
+  min-height: 100vh;
+  display: flex;
+  background: #faf8f8;
+  color: #4d414b;
+}
+
+.mc-sidebar {
+  width: 252px;
+  flex: 0 0 252px;
+  display: flex;
+  flex-direction: column;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  padding: 25px 15px 18px;
+  background: #fff;
+  border-right: 1px solid #f0e8ec;
+  z-index: 30;
+}
+
+.mc-brand-button {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  padding: 2px 8px 28px;
+  cursor: pointer;
+  color: #4e414c;
+  font-size: 21px;
+  font-weight: 800;
+  letter-spacing: -.7px;
+}
+
+.mc-brand-button>span:last-child {
+  display: flex;
+  flex-direction: column;
+}
+
+.mc-brand-button>span:last-child>span {
+  display: inline;
+  color: #c77894;
+}
+
+.mc-brand-button small {
+  margin-top: 4px;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: .1px;
+  color: #a59aa2;
+}
+
+.mc-brand-flower {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 15px;
+  background: #faeaf0;
+  font-size: 23px;
+}
+
+.mc-sidebar-label {
+  color: #b2a4ad;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1.6px;
+  padding: 0 12px 12px;
+}
+
+.mc-side-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.mc-side-link {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border: 0;
+  border-radius: 12px;
+  padding: 12px 12px;
+  color: #837783;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+  font-size: 12px;
+  font-weight: 600;
+  transition: background .18s, color .18s, transform .18s;
+}
+
+.mc-side-link:hover {
+  background: #fcf2f5;
+  color: #b86f89;
+  transform: translateX(2px);
+}
+
+.mc-side-link.is-active {
+  color: #b66683;
+  background: #faedf2;
+  box-shadow: inset 3px 0 #ce8199;
+}
+
+.mc-side-icon {
+  width: 22px;
+  display: inline-grid;
+  place-items: center;
+  font-size: 17px;
+}
+
+.mc-nav-dot {
+  width: 6px;
+  height: 6px;
+  margin-left: auto;
+  border-radius: 50%;
+  background: #d48aa2;
+}
+
+.mc-sidebar-bottom {
+  margin-top: auto;
+}
+
+.mc-sidebar-note {
+  padding: 16px;
+  margin: 16px 2px;
+  border: 1px solid #f3e4e9;
+  border-radius: 16px;
+  background: linear-gradient(145deg, #fff7fa, #f7f2fb);
+}
+
+.mc-sidebar-note>span {
+  font-size: 23px;
+  color: #cc819b;
+}
+
+.mc-sidebar-note strong {
+  display: block;
+  margin-top: 6px;
+  font-size: 12px;
+}
+
+.mc-sidebar-note p {
+  margin: 6px 0 0;
+  color: #998b97;
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+.mc-side-home {
+  border-top: 1px solid #f4edf0;
+  border-radius: 0;
+  padding-top: 17px;
+}
+
+.mc-app-main {
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.mc-topbar {
+  height: 72px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 0 clamp(18px, 3.3vw, 46px);
+  background: rgba(255, 255, 255, .9);
+  border-bottom: 1px solid #f0e9ec;
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  backdrop-filter: blur(14px);
+}
+
+.mc-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #5a4d58;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.mc-breadcrumb span {
+  color: #b8aab3;
+  font-size: 9px;
+  letter-spacing: 1.5px;
+}
+
+.mc-breadcrumb b {
+  color: #d7cbd2;
+}
+
+.mc-top-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.mc-top-icon {
+  width: 35px;
+  height: 35px;
+  border: 1px solid #f0e6eb;
+  background: white;
+  border-radius: 12px;
+  color: #b86f89;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+.mc-user-avatar {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #f4e2e9;
+  color: #a65f7b;
+  font-weight: 800;
+  font-size: 13px;
+}
+
+.mc-user-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 72px;
+}
+
+.mc-user-meta strong {
+  font-size: 11px;
+  color: #5a4d58;
+}
+
+.mc-user-meta span {
+  font-size: 10px;
+  color: #a69aa4;
+}
+
+.mc-role-label {
+  color: #a69aa4;
+  font-size: 10px;
+  margin-left: 8px;
+}
+
+.mc-role-picker {
+  max-width: 100px;
+  border: 1px solid #eee3e8;
+  border-radius: 9px;
+  padding: 8px 9px;
+  color: #7e6e7b;
+  background: #fff;
+  font-size: 11px;
+}
+
+.mc-content {
+  width: 100%;
+  max-width: 1500px;
+  padding: 29px clamp(18px, 3.3vw, 46px) 24px;
+  margin: 0 auto;
+  flex: 1;
+  animation: mc-fade-in .22s ease both;
+}
+
+.mc-app-footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 17px clamp(18px, 3.3vw, 46px);
+  color: #a79ba5;
+  font-size: 10px;
+  border-top: 1px solid #f0e9ec;
+  background: #fff;
+}
+
+.mc-app-footer span:first-child {
+  color: #bb7a91;
+  font-weight: 700;
+}
+
+.mc-mobile-menu,
+.mc-mobile-scrim {
+  display: none;
+}
+
+.mc-app-public {
+  min-height: 100vh;
+}
+
+@keyframes mc-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 980px) {
+  .mc-sidebar {
+    width: 220px;
+    flex-basis: 220px;
+  }
+
+  .mc-user-meta,
+  .mc-role-label {
+    display: none;
+  }
+}
+
+@media (max-width: 760px) {
+  .mc-sidebar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    height: 100dvh;
+    width: 270px;
+    transform: translateX(-105%);
+    transition: transform .22s ease;
+    box-shadow: none;
+  }
+
+  .mc-sidebar--open {
+    transform: translateX(0);
+    box-shadow: 18px 0 55px #3f2e3d1a;
+  }
+
+  .mc-mobile-scrim {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 25;
+    border: 0;
+    background: #34253260;
+  }
+
+  .mc-mobile-menu {
+    display: inline-grid;
+    place-items: center;
+    border: 1px solid #f0e6eb;
+    background: #fff;
+    color: #8c6b7c;
+    border-radius: 10px;
+    width: 36px;
+    height: 36px;
+    cursor: pointer;
+  }
+
+  .mc-topbar {
+    height: 64px;
+    padding: 0 14px;
+    gap: 10px;
+  }
+
+  .mc-breadcrumb {
+    flex: 1;
+    gap: 7px;
+    font-size: 11px;
+  }
+
+  .mc-breadcrumb span {
+    display: none;
+  }
+
+  .mc-top-actions {
+    gap: 7px;
+  }
+
+  .mc-role-picker {
+    max-width: 84px;
+    padding: 7px 4px;
+  }
+
+  .mc-content {
+    padding: 20px 14px;
+  }
+
+  .mc-app-footer {
+    flex-direction: column;
+    padding: 14px;
+    line-height: 1.5;
+  }
+}
