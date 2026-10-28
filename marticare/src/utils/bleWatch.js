@@ -1,26 +1,41 @@
-// Parse incoming 20-byte payload from Ultra3 Smartwatch
-export function parseWatchPayload(dataView) {
-    const bytes = new Uint8Array(dataView.buffer);
+// Parsers for Ultra3 BLE data.
+//
+// IMPORTANT: The Ultra3's proprietary protocol (service 6e400801-..., notify 6e400003-...) is NOT
+// documented and no real packet has been captured yet. The earlier "0xCD / 20 byte" layout was an
+// unverified guess and has been removed. Packets from unknown characteristics are only logged.
+//
+// Only formats defined by the Bluetooth SIG are decoded here:
+//   0x2A37 Heart Rate Measurement, 0x2A19 Battery Level.
 
-    // Check frame header (0xCD)
-    if (bytes[0] === 0xCD && bytes.length >= 20) {
-        // 1. Step Counter (Bytes 12-13, Big-Endian)
-        const steps = (bytes[12] << 8) | bytes[13];
+export const HEART_RATE_MEASUREMENT = '00002a37-0000-1000-8000-00805f9b34fb';
+export const BATTERY_LEVEL = '00002a19-0000-1000-8000-00805f9b34fb';
 
-        // 2. Body Temperature Estimation / Secondary Sensor (Bytes 16-17)
-        // Converts raw ADC value into Celsius scale
-        const rawTemp = (bytes[16] << 8) | bytes[17];
-        const temperature = (rawTemp / 100).toFixed(1);
+export const VALID_RANGES = {
+    heartRate: { min: 30, max: 250 }
+};
 
-        // 3. Heart Rate or SpO2 Metric (Byte 19)
-        const heartRate = bytes[19];
+export function toHex(dataView) {
+    return Array.from(new Uint8Array(dataView.buffer, dataView.byteOffset, dataView.byteLength))
+        .map((b) => b.toString(16).padStart(2, '0'))
+        .join(' ');
+}
 
-        return {
-            steps,
-            temperature: temperature > 0 ? temperature : "36.5", // Fallback standard
-            heartRate,
-            timestamp: new Date().toLocaleTimeString()
-        };
+// Returns { heartRate } | { batteryLevel } | null (unknown / malformed / out of range).
+export function parseStandardCharacteristic(uuid, dataView) {
+    const id = String(uuid).toLowerCase();
+    if (id === HEART_RATE_MEASUREMENT) {
+        if (dataView.byteLength < 2) return null;
+        const flags = dataView.getUint8(0);
+        const is16 = (flags & 0x01) !== 0;
+        if (is16 && dataView.byteLength < 3) return null;
+        const hr = is16 ? dataView.getUint16(1, true) : dataView.getUint8(1);
+        const { min, max } = VALID_RANGES.heartRate;
+        return hr >= min && hr <= max ? { heartRate: hr } : null;
+    }
+    if (id === BATTERY_LEVEL) {
+        if (dataView.byteLength < 1) return null;
+        const level = dataView.getUint8(0);
+        return level <= 100 ? { batteryLevel: level } : null;
     }
     return null;
 }

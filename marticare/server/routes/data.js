@@ -20,9 +20,43 @@ router.get('/health-records', auth, async (req, res) => {
   }
 });
 
+const VITAL_LIMITS = {
+  heartRate: [30, 250], spo2: [50, 100], bpSystolic: [50, 260], bpDiastolic: [30, 160],
+  temperature: [30, 45], steps: [0, 200000]
+};
+
+// Returns a cleaned vitals object, or null if nothing valid was supplied.
+function cleanVitals(data) {
+  if (!data || typeof data !== 'object') return null;
+  const out = {};
+  for (const [key, [min, max]] of Object.entries(VITAL_LIMITS)) {
+    if (data[key] == null) continue;
+    const n = Number(data[key]);
+    if (!Number.isFinite(n) || n < min || n > max) return null;
+    out[key] = n;
+  }
+  if (Object.keys(out).length === 0) return null;
+  out.source = data.source === 'wearable' ? 'wearable' : 'manual';
+  return out;
+}
+
 router.post('/health-records', auth, async (req, res) => {
   try {
-    const record = new HealthRecord({ ...req.body, userId: req.body.userId || req.user._id, recordedBy: req.user._id });
+    const body = { ...req.body };
+    // Users may only write their own readings unless they are a doctor.
+    const userId = req.user.role === 'doctor' && body.userId ? body.userId : req.user._id;
+    if (body.type === 'vitals') {
+      const data = cleanVitals(body.data);
+      if (!data) return res.status(400).json({ message: 'Invalid or out-of-range vitals' });
+      body.data = data;
+      // Prevent duplicate uploads of the same reading within 30 seconds.
+      const last = await HealthRecord.findOne({ userId, type: 'vitals' }).sort({ createdAt: -1 });
+      if (last && Date.now() - last.createdAt.getTime() < 30000 &&
+          JSON.stringify(last.data) === JSON.stringify(data)) {
+        return res.status(200).json(last);
+      }
+    }
+    const record = new HealthRecord({ ...body, userId, recordedBy: req.user._id });
     await record.save();
     res.status(201).json(record);
   } catch (err) {

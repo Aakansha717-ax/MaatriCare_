@@ -7,7 +7,7 @@ import { Card, Stat, Chip, Progress } from '../components/common/UI';
 export default function MotherDashboard({ onNavigate }) {
     const ble = useBle();
     const care = useCare();
-    const { vitals, connected } = ble;
+    const { vitals, connected, receiving, noDataWarning, lastUpdated, packetCount, lastPacketHex, uploadError, error: bleError } = ble;
     const h = new Date().getHours();
     const greeting = h < 12 ? 'Good Morning' : h < 17 ? 'Good Afternoon' : 'Good Evening';
     const issues = evaluateVitals(vitals, care.ranges);
@@ -24,17 +24,24 @@ export default function MotherDashboard({ onNavigate }) {
                     <div className="mc-muted">Here is your care overview for today.</div>
                 </div>
                 <div className="mc-row">
-                    <Chip tone={connected ? 'ok' : 'warn'}>{connected ? 'Smartwatch Connected' : 'Smartwatch Disconnected'}</Chip>
+                    <Chip tone={receiving ? 'ok' : 'warn'}>{receiving ? 'Receiving data' : connected ? 'Connected — no health data' : ble.status === 'Connecting' ? 'Connecting…' : 'Smartwatch Disconnected'}</Chip>
                     {!connected && <button className="mc-btn mc-btn--sm" onClick={ble.connect}>Connect watch</button>}
                 </div>
             </div>
+
+            {bleError && <div className="mc-alert">{bleError}</div>}
+            {noDataWarning && (
+                <div className="mc-alert">⚠️ Bluetooth is connected but no health data has arrived{packetCount > 0 ? ` (${packetCount} unrecognised packet(s) received, last: ${lastPacketHex})` : ''}. The Ultra3 may need its companion app or an undocumented protocol.</div>
+            )}
+            {uploadError && <div className="mc-alert">Could not save reading: {uploadError}</div>}
+            <div className="mc-muted mc-small">Last reading: {lastUpdated ? new Date(lastUpdated).toLocaleTimeString() : 'none yet'}. Wearable values are informational, not a medical diagnosis.</div>
 
             {issues.length > 0 && (
                 <div className="mc-alert">⚠️ <strong>Health Alert</strong> — Your current reading is outside your configured range. Please consult your healthcare professional if concerned.</div>
             )}
 
             <div className="mc-grid mc-grid--sm">
-                <Stat icon="❤️" label="Heart Rate" value={vitals.heartRate} unit="BPM" />
+                <Stat icon="❤️" label="Heart Rate" value={vitals.heartRate} unit=" BPM" />
                 <Stat icon="🫁" label="SpO2" value={vitals.spo2} unit="%" />
                 <Stat icon="🩸" label="Blood Pressure" value={bp} unit="mmHg" />
                 <Stat icon="🌡️" label="Body Temp" value={vitals.temperature} unit="°C" />

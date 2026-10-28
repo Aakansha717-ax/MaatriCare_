@@ -1,5 +1,6 @@
 
-const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/+$/, '');
+// Accepts either http://host:5000 or http://host:5000/api; paths below are always sent as /api/...
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || '').replace(/\/+$/, '').replace(/\/api$/, '');
 
 export const isApiConfigured = () => Boolean(API_BASE_URL);
 
@@ -9,6 +10,10 @@ const getToken = () => {
     } catch {
         return '';
     }
+};
+
+const storeToken = (token) => {
+    try { localStorage.setItem('mc_token', token); } catch { /* storage unavailable */ }
 };
 
 async function request(path, options = {}) {
@@ -23,7 +28,7 @@ async function request(path, options = {}) {
     try {
         const token = getToken();
 
-        const response = await fetch(`${API_URL}/api/auth/signup`, {
+        const response = await fetch(`${API_BASE_URL}${path.startsWith('/api/') ? path : `/api${path}`}`, {
             ...options,
             headers: {
                 ...(options.body ? { 'Content-Type': 'application/json' } : {}),
@@ -33,6 +38,9 @@ async function request(path, options = {}) {
         });
 
         const data = await response.json().catch(() => ({}));
+        if (response.status === 401) {
+            return { ok: false, status: 401, data, message: 'Not signed in to the MaatriCare API (401). Please log in again.' };
+        }
 
         if (!response.ok) {
             return {
@@ -60,11 +68,15 @@ const json = (method, value) => ({
 export const apiService = {
 
     async signup(details) {
-        return request('/auth/signup', json('POST', details));
+        const res = await request('/auth/signup', json('POST', details));
+        if (res.ok && res.data?.token) storeToken(res.data.token);
+        return res;
     },
 
     async login(details) {
-        return request('/auth/login', json('POST', details));
+        const res = await request('/auth/login', json('POST', details));
+        if (res.ok && res.data?.token) storeToken(res.data.token);
+        return res;
     },
 
 
@@ -111,7 +123,7 @@ export const apiService = {
             '/data/health-records',
             json('POST', {
                 type: 'vitals',
-                data: vitals,
+                data: { ...vitals, source: 'wearable' },
                 notes: 'Wearable reading received by MaatriCare.',
             }),
         );
@@ -152,5 +164,3 @@ export const apiService = {
         return request('/data/health-records');
     },
 };
-
-const API_URL = import.meta.env.VITE_API_URL || 'https://maatricare-api.onrender.com';
