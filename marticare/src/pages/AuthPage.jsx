@@ -19,23 +19,62 @@ export default function AuthPage({ initialMode = 'signup', onBack, onDone }) {
     const [busy, setBusy] = useState(false);
     const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
 
+
     const submit = async (e) => {
         e.preventDefault();
-        setError('');
+        setError("");
         setBusy(true);
+
+        let timeoutId;
+
         try {
-            // ADAPT: your AuthContext.jsx was not provided. If it exposes login()/signup(),
-            // they are called with ONE object argument. Change these two calls to match your signatures.
-            const fn = mode === 'signup' ? (auth.signup || auth.register) : auth.login;
-            if (typeof fn === 'function') await fn({ name: form.name, email: form.email, password: form.password });
-            setProfile((p) => ({ name: form.name || p.name, email: form.email }));
-            setStep('role');
+            const fn =
+                mode === "signup"
+                    ? (auth.signup || auth.register)
+                    : auth.login;
+
+            if (typeof fn !== "function") {
+                throw new Error("Authentication function is unavailable.");
+            }
+
+            const request = fn({
+                name: form.name.trim(),
+                email: form.email.trim(),
+                password: form.password,
+            });
+
+            await Promise.race([
+                request,
+                new Promise((_, reject) => {
+                    timeoutId = setTimeout(
+                        () => reject(
+                            new Error(
+                                "The server is taking too long. Please check your connection and try again."
+                            )
+                        ),
+                        20000
+                    );
+                }),
+            ]);
+
+            setProfile((p) => ({
+                ...p,
+                name: form.name.trim() || p.name,
+                email: form.email.trim(),
+            }));
+
+            setForm({ name: "", email: "", password: "" });
+            setStep("role");
         } catch (err) {
-            setError((err && err.message) || 'Something went wrong. Please try again.');
+            setError(
+                err?.message || "Something went wrong. Please try again."
+            );
         } finally {
+            clearTimeout(timeoutId);
             setBusy(false);
         }
     };
+
 
     const pickRole = (role) => {
         auth.switchRole(role);

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
-import { BleProvider } from './context/BleContext';
+import { BleProvider, useBle } from './context/BleContext'; // Added useBle here
 import { CareProvider } from './context/CareContext';
 
 import Landing from './pages/Landing';
@@ -14,6 +14,8 @@ import NotificationCenter from './pages/NotificationCenter';
 import Connections from './pages/Connections';
 import FamilyDashboard from './pages/FamilyDashboard';
 import DoctorPortal from './pages/DoctorPortal';
+
+import ChatCompanion from './components/ChatCompanion'; // Added Companion Chat Bot
 
 import './styles/theme.css';
 import './App.css';
@@ -110,6 +112,7 @@ const routeFromPath = () => {
 
 function AppFrame() {
   const { user, switchRole } = useAuth();
+  const { connected, connectMock, disconnect } = useBle(); // Access BleContext demo controls
 
   const [route, setRoute] = useState(routeFromPath);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -206,6 +209,7 @@ function AppFrame() {
     content = <MotherDashboard onNavigate={navigate} />;
   }
 
+
   if (isPublic) {
     return <div className="mc-app-public">{content}</div>;
   }
@@ -296,6 +300,51 @@ function AppFrame() {
           </div>
 
           <div className="mc-top-actions">
+            {/* ⚡ Global Demo Mode Button in Topbar */}
+            {!connected ? (
+              <button
+                onClick={connectMock}
+                title="Simulate watch data for demo"
+                style={{
+                  padding: '6px 12px',
+                  background: '#faeaf0',
+                  color: '#b5657b',
+                  border: '1px solid #f2cbd5',
+                  borderRadius: '12px',
+                  fontSize: '11px',
+                  fontWeight: '650',
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  marginRight: '8px'
+                }}
+              >
+                <span>⚡ Simulate Watch</span>
+              </button>
+            ) : (
+              <button
+                onClick={disconnect}
+                title="Disconnect mock simulation"
+                style={{
+                  padding: '6px 12px',
+                  background: '#edf5f0',
+                  color: '#5b9277',
+                  border: '1px solid #d0e6db',
+                  borderRadius: '12px',
+                  fontSize: '11px',
+                  fontWeight: '650',
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  marginRight: '8px'
+                }}
+              >
+                <span>🟢 Demo Connected (Disconnect)</span>
+              </button>
+            )}
+
             <button
               className="mc-top-icon"
               title="Notifications"
@@ -347,6 +396,13 @@ function AppFrame() {
         <main className="mc-content" key={route}>
           {content}
         </main>
+
+        {/* Floating Right-Side AI Chat Companion Widget */}
+        {role === 'mother' && (
+          <div className="mc-floating-chat">
+            <ChatCompanion />
+          </div>
+        )}
 
         <footer className="mc-app-footer">
           <span>🌸 MaatriCare</span>

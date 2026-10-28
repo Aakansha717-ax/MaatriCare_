@@ -1,0 +1,115 @@
+.mc-chat-wrapper {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 1000;
+    font-family: inherit;
+}
+
+.mc-chat-toggle-btn {
+    background: #faeaf0;
+    color: #b5657b;
+    border: 1px solid #f2cbd5;
+    padding: 10px 16px;
+    border-radius: 30px;
+    font-weight: 650;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(181, 101, 123, 0.15);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: transform 0.2s ease;
+}
+
+.mc-chat-toggle-btn:hover {
+    transform: scale(1.05);
+}
+
+.mc-chat-box {
+    width: 340px;
+    height: 450px;
+    background: #ffffff;
+    border: 1px solid #f2cbd5;
+    border-radius: 16px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.mc-chat-header {
+    background: #faeaf0;
+    padding: 12px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: 650;
+    color: #b5657b;
+    border-bottom: 1px solid #f2cbd5;
+}
+
+.mc-chat-close-btn {
+    background: none;
+    border: none;
+    font-size: 16px;
+    cursor: pointer;
+    color: #b5657b;
+}
+
+.mc-chat-messages {
+    flex: 1;
+    padding: 16px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    background: #fcf9fa;
+}
+
+.mc-chat-bubble {
+    max-width: 80%;
+    padding: 10px 14px;
+    border-radius: 12px;
+    font-size: 13px;
+    line-height: 1.4;
+}
+
+.mc-chat-bubble.ai {
+    background: #ffffff;
+    color: #333;
+    border: 1px solid #eee;
+    align-self: flex-start;
+}
+
+.mc-chat-bubble.user {
+    background: #b5657b;
+    color: #ffffff;
+    align-self: flex-end;
+}
+
+.mc-chat-input-form {
+    display: flex;
+    padding: 10px;
+    border-top: 1px solid #eee;
+    background: #ffffff;
+}
+
+.mc-chat-input-form input {
+    flex: 1;
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    outline: none;
+    font-size: 13px;
+}
+
+.mc-chat-input-form button {
+    background: #b5657b;
+    color: white;
+    border: none;
+    padding: 8px 14px;
+    margin-left: 6px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+}

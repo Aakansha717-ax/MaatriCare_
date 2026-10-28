@@ -1,5 +1,8 @@
 
-const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/+$/, '');
+const API_BASE_URL = (
+    import.meta.env.VITE_API_BASE_URL ||
+    'http://localhost:5000/api'
+).replace(/\/+$/, '');
 
 export const isApiConfigured = () => Boolean(API_BASE_URL);
 
@@ -16,15 +19,19 @@ async function request(path, options = {}) {
         return {
             ok: false,
             data: null,
-            message: 'Demo mode: API URL is not configured.',
+            message: 'API URL is not configured.',
         };
     }
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 20000);
 
     try {
         const token = getToken();
 
-        const response = await fetch(`${API_URL}/api/auth/signup`, {
+        const response = await fetch(`${API_BASE_URL}${path}`, {
             ...options,
+            signal: controller.signal,
             headers: {
                 ...(options.body ? { 'Content-Type': 'application/json' } : {}),
                 ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -38,7 +45,7 @@ async function request(path, options = {}) {
             return {
                 ok: false,
                 data,
-                message: data.message || `Request failed(${response.status})`,
+                message: data.message || `Request failed (${response.status})`,
             };
         }
 
@@ -47,8 +54,13 @@ async function request(path, options = {}) {
         return {
             ok: false,
             data: null,
-            message: error?.message || 'Could not reach the MaatriCare API.',
+            message:
+                error.name === 'AbortError'
+                    ? 'The server took too long to respond. Please try again.'
+                    : error.message || 'Could not reach the MaatriCare API.',
         };
+    } finally {
+        clearTimeout(timeoutId);
     }
 }
 
@@ -58,7 +70,6 @@ const json = (method, value) => ({
 });
 
 export const apiService = {
-
     async signup(details) {
         return request('/auth/signup', json('POST', details));
     },
@@ -66,7 +77,6 @@ export const apiService = {
     async login(details) {
         return request('/auth/login', json('POST', details));
     },
-
 
     logout() {
         try {
@@ -77,12 +87,14 @@ export const apiService = {
     },
 
     async healthCheck() {
-        return request('/api/health');
+        return request('/health');
     },
 
     async fetchSharedSummary() {
         try {
-            const data = JSON.parse(localStorage.getItem('mc_shared_summary') || 'null');
+            const data = JSON.parse(
+                localStorage.getItem('mc_shared_summary') || 'null'
+            );
             return { ok: Boolean(data), data };
         } catch {
             return { ok: false, data: null };
@@ -99,11 +111,11 @@ export const apiService = {
     },
 
     async pushVitals(vitals) {
-        if (!API_BASE_URL || !getToken()) {
+        if (!getToken()) {
             return {
                 ok: false,
                 data: null,
-                message: 'Vitals remain in this session until you sign in to the API.',
+                message: 'Please sign in before syncing health records.',
             };
         }
 
@@ -113,31 +125,29 @@ export const apiService = {
                 type: 'vitals',
                 data: vitals,
                 notes: 'Wearable reading received by MaatriCare.',
-            }),
+            })
         );
     },
 
     async logNotification(notification) {
-        if (!API_BASE_URL || !getToken()) {
-            return { ok: false, data: null };
-        }
+        if (!getToken()) return { ok: false, data: null };
         return request('/notifications', json('POST', notification));
     },
 
     async getVaccinations() {
-        return request('/api/vaccinations');
+        return request('/vaccinations');
     },
 
     async createVaccination(vaccine) {
-        return request('/api/vaccinations', json('POST', vaccine));
+        return request('/vaccinations', json('POST', vaccine));
     },
 
     async getReminders() {
-        return request('/api/reminders');
+        return request('/reminders');
     },
 
     async createReminder(reminder) {
-        return request('/api/reminders', json('POST', reminder));
+        return request('/reminders', json('POST', reminder));
     },
 
     async getAppointments() {
@@ -152,5 +162,3 @@ export const apiService = {
         return request('/data/health-records');
     },
 };
-
-const API_URL = import.meta.env.VITE_API_URL || 'https://maatricare-api.onrender.com';

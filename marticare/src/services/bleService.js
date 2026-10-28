@@ -11,8 +11,10 @@ let frameCallback = null;
 let disconnectCallback = null;
 
 export function isBluetoothSupported() {
-    return typeof navigator !== "undefined" &&
-        !!navigator.bluetooth;
+    return (
+        typeof navigator !== "undefined" &&
+        !!navigator.bluetooth
+    );
 }
 
 export async function connectWatch({
@@ -21,26 +23,54 @@ export async function connectWatch({
     onDisconnect
 } = {}) {
     if (!isBluetoothSupported()) {
-        throw new Error("Web Bluetooth is not supported in this browser.");
+        throw new Error(
+            "Web Bluetooth is not supported in this browser."
+        );
     }
+
+    // Clean up any previous connection before starting another.
+    disconnectWatch();
 
     frameCallback = onFrame;
     disconnectCallback = onDisconnect;
 
     onStatus?.("Connecting");
 
-    const device = await navigator.bluetooth.requestDevice({
-        filters: [{ services: [SERVICE_UUID] }],
-        optionalServices: ["battery_service", "device_information"]
-    });
-
-    currentDevice = device;
-    device.addEventListener("gattserverdisconnected", handleDisconnect);
-
     try {
+        const device = await navigator.bluetooth.requestDevice({
+            filters: [{ name: "Ultra3" }],
+            optionalServices: [
+                SERVICE_UUID,
+                "battery_service",
+                "device_information"
+            ]
+        });
+
+        currentDevice = device;
+        device.addEventListener(
+            "gattserverdisconnected",
+            handleDisconnect
+        );
+
         currentServer = await device.gatt.connect();
 
-        const service = await currentServer.getPrimaryService(SERVICE_UUID);
+        const service =
+            await currentServer.getPrimaryService(SERVICE_UUID);
+
+        const characteristics = await service.getCharacteristics();
+
+        console.table(
+            characteristics.map((c) => ({
+                uuid: c.uuid,
+                notify: c.properties.notify,
+                indicate: c.properties.indicate,
+                read: c.properties.read,
+                write: c.properties.write,
+                writeWithoutResponse: c.properties.writeWithoutResponse
+            }))
+        );
+
+
         currentCharacteristic =
             await service.getCharacteristic(NOTIFY_UUID);
 
@@ -50,17 +80,55 @@ export async function connectWatch({
         );
 
         await currentCharacteristic.startNotifications();
+        console.log("✅ Notifications started");
+        console.log("📡 Characteristic:", currentCharacteristic.uuid);
+        console.log(
+            "📡 Properties:",
+            currentCharacteristic.properties
+        );
 
         onStatus?.("Connected");
 
-        return { device, server: currentServer };
+        console.log("BLE connected:", device.name);
+        console.log("Notification subscription started.");
+
+        return {
+            device,
+            server: currentServer
+        };
     } catch (error) {
+        console.error("BLE connection failed:", error);
+
+        if (currentCharacteristic) {
+            currentCharacteristic.removeEventListener(
+                "characteristicvaluechanged",
+                handleNotification
+            );
+        }
+
+        if (currentDevice) {
+            currentDevice.removeEventListener(
+                "gattserverdisconnected",
+                handleDisconnect
+            );
+        }
+
+        if (currentDevice?.gatt?.connected) {
+            currentDevice.gatt.disconnect();
+        }
+
+        currentDevice = null;
+        currentServer = null;
+        currentCharacteristic = null;
+
         onStatus?.("Failed to Connect");
         throw error;
     }
 }
 
 function handleNotification(event) {
+    console.log("🔔 Notification event received!");
+
     const value = event.target.value;
 
     const bytes = new Uint8Array(
@@ -68,29 +136,75 @@ function handleNotification(event) {
         value.byteOffset,
         value.byteLength
     );
-
-    const parsed = parseWatchPayload(
-        new DataView(value.buffer, value.byteOffset, value.byteLength)
+    console.log(
+        "📥 ULTRA3 RAW PACKET:",
+        Array.from(bytes)
+            .map(b => b.toString(16).padStart(2, "0"))
+            .join(" ")
     );
 
-    if (!parsed) return;
+    const rawHex = Array.from(bytes)
+        .map(byte => byte.toString(16).padStart(2, "0"))
+        .join(" ");
 
-    frameCallback?.({
-        ...parsed,
-        valid: true,
-        rawHex: Array.from(bytes)
-            .map(byte => byte.toString(16).padStart(2, "0"))
-            .join(" ")
-    });
+    console.log("WATCH NOTIFICATION BYTES:", rawHex);
+
+    try {
+        const parsed = parseWatchPayload(
+            new DataView(
+                value.buffer,
+                value.byteOffset,
+                value.byteLength
+            )
+        );
+
+        console.log("PARSED WATCH DATA:", parsed);
+
+        if (!parsed) {
+            console.warn(
+                "Packet received, but the parser did not recognize it."
+            );
+            return;
+        }
+
+        frameCallback?.({
+            ...parsed,
+            valid: true,
+            rawHex
+        });
+    } catch (error) {
+        console.error("Failed to parse watch packet:", error);
+    }
 }
 
 function handleDisconnect() {
+    console.log("Watch disconnected.");
+
+    currentCharacteristic?.removeEventListener(
+        "characteristicvaluechanged",
+        handleNotification
+    );
+
+    currentDevice?.removeEventListener(
+        "gattserverdisconnected",
+        handleDisconnect
+    );
+
+    currentDevice = null;
     currentServer = null;
     currentCharacteristic = null;
-    disconnectCallback?.();
+
+    const callback = disconnectCallback;
+
+    frameCallback = null;
+    disconnectCallback = null;
+
+    callback?.();
 }
 
 export function disconnectWatch() {
+    const device = currentDevice;
+
     if (currentCharacteristic) {
         currentCharacteristic.removeEventListener(
             "characteristicvaluechanged",
@@ -98,13 +212,21 @@ export function disconnectWatch() {
         );
     }
 
-    if (currentDevice?.gatt?.connected) {
-        currentDevice.gatt.disconnect();
-    } else {
-        handleDisconnect();
+    if (device) {
+        device.removeEventListener(
+            "gattserverdisconnected",
+            handleDisconnect
+        );
     }
 
-    currentDevice = null;
-    currentServer = null;
     currentCharacteristic = null;
+    currentServer = null;
+    currentDevice = null;
+
+    frameCallback = null;
+    disconnectCallback = null;
+
+    if (device?.gatt?.connected) {
+        device.gatt.disconnect();
+    }
 }

@@ -23,10 +23,58 @@ export default function MotherDashboard({ onNavigate }) {
                     <h1>{greeting}, {care.displayName} ❤️</h1>
                     <div className="mc-muted">Here is your care overview for today.</div>
                 </div>
+
                 <div className="mc-row">
-                    <Chip tone={connected ? 'ok' : 'warn'}>{connected ? 'Smartwatch Connected' : 'Smartwatch Disconnected'}</Chip>
-                    {!connected && <button className="mc-btn mc-btn--sm" onClick={ble.connect}>Connect watch</button>}
+                    <Chip
+                        tone={
+                            connected
+                                ? "ok"
+                                : ble.status === "Connecting"
+                                    ? "info"
+                                    : "warn"
+                        }
+                    >
+                        {ble.status === "Connecting"
+                            ? "Connecting to smartwatch..."
+                            : connected
+                                ? "Smartwatch Connected"
+                                : ble.status === "Failed to Connect"
+                                    ? "Connection Failed"
+                                    : "Smartwatch Disconnected"}
+                    </Chip>
+
+                    {connected ? (
+                        <button
+                            className="mc-btn mc-btn--sm"
+                            onClick={ble.disconnect}
+                        >
+                            Disconnect
+                        </button>
+                    ) : (
+                        <button
+                            className="mc-btn mc-btn--sm"
+                            onClick={ble.connect}
+                            disabled={ble.status === "Connecting"}
+                        >
+                            {ble.status === "Connecting"
+                                ? "Connecting..."
+                                : "Connect watch"}
+                        </button>
+                    )}
                 </div>
+
+                {ble.error && (
+                    <p role="alert" style={{ color: "#c62828" }}>
+                        {ble.error}
+                    </p>
+                )}
+
+                {ble.rawHex && (
+                    <p className="mc-muted mc-small">
+                        Last received packet: <code>{ble.rawHex}</code>
+                    </p>
+                )}
+
             </div>
 
             {issues.length > 0 && (
